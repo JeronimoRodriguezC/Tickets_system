@@ -3,18 +3,36 @@ services:
     image: mysql:8.0
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: rootpswrd
+      MYSQL_DATABASE: dbunica
+      MYSQL_USER: UNICA
+      MYSQL_PASSWORD: Un1c@Db*
+    ports:
+      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
       - ./backend/sql:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -prootpswrd --silent"]
       interval: 5s
       timeout: 5s
       retries: 20
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: biblioteca_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: dbunica
+      PMA_PORT: 3306
+      PMA_ROOT_PASSWORD: rootpassword
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    networks:
+      - app_red
 
   mailpit:
     image: axllent/mailpit
@@ -28,11 +46,11 @@ services:
     env_file: .env
     environment:
       DB_HOST: db
-      DB_USER: ${MYSQL_USER}
-      DB_PASSWORD: ${MYSQL_PASSWORD}
+      DB_USER: root
+      DB_PASSWORD: rootpswrd
       DB_NAME: ${MYSQL_DATABASE}
     ports:
-      - "${BACKEND_PORT:-3000}:3000"
+      - "3000:3000"
     volumes:
       - uploads:/app/uploads
     depends_on:
