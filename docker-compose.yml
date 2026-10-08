@@ -17,10 +17,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    networks:
+      - app_red
 
   phpmyadmin:
     image: phpmyadmin:latest
-    container_name: biblioteca_phpmyadmin
+    container_name: tickets_phpmyadmin
     restart: always
     environment:
       PMA_HOST: dbunica
@@ -39,6 +41,8 @@ services:
     restart: unless-stopped
     ports:
       - "8025:8025"   # bandeja web para ver los correos de prueba
+    networks:
+      - app_red
 
   backend:
     build: ./backend
@@ -48,7 +52,7 @@ services:
       DB_HOST: db
       DB_USER: root
       DB_PASSWORD: rootpswrd
-      DB_NAME: ${MYSQL_DATABASE}
+      DB_NAME: dbunica
     ports:
       - "3000:3000"
     volumes:
@@ -58,7 +62,13 @@ services:
         condition: service_healthy
       mailpit:
         condition: service_started
+    networks:
+      - app_red
 
 volumes:
   db_data:
   uploads:
+
+networks:
+  app_red:
+    driver: bridge
